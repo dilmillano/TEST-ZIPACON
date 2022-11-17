@@ -1,0 +1,80 @@
+//IMPORTAR AREA
+Map.addLayer(table,{},'area',true);
+
+//var geometry = table.geometry();
+var geometry = mosquera;
+var roi2= ee.FeatureCollection('users/dilmillano/mygeodata');
+Map.centerObject(geometry);
+//DECLARAR 3 MOMENTOS TEMPORALES
+var tiempo1 = l8.filterBounds(geometry)
+              .filterDate('2013-01-01', '2015-01-01')
+              //.filterMetadata('CLOUD_COVER' , 'less_than',20)
+              .sort('CLOUD_COVER')
+              .first()
+              //.reduce(ee.Reducer.median())
+              .clip(geometry);
+var tiempo2 = l8.filterBounds(geometry)
+              .filterDate('2015-01-01', '2016-01-01')
+              .filterMetadata('CLOUD_COVER' , 'less_than',20)
+              .reduce(ee.Reducer.median()) 
+              .clip(geometry);
+var tiempo3 = l8.filterBounds(geometry)
+              .filterDate('2018-01-01', '2019-01-01')
+              .filterMetadata('CLOUD_COVER' , 'less_than',20)
+              .reduce(ee.Reducer.median())
+              .clip(geometry); 
+              
+//CALCULO NDVI
+var ndvi1 = tiempo1.normalizedDifference(['B5', 'B4']);
+var ndvi2 = tiempo2.normalizedDifference(['B5_median', 'B4_median']);
+var ndvi3 = tiempo3.normalizedDifference(['B5_median', 'B4_median']);   
+var NDVImultitemporal = ndvi1.addBands(ndvi2).addBands(ndvi3).rename(['ndvi1', 'ndvi2', 'ndvi3']);
+var tiempo4= tiempo1.addBands(ndvi1)//.select('nd').rename('ndvi');
+var tiempo5= tiempo2.addBands(ndvi2)//.select('nd').rename('ndvi');
+var tiempo6= tiempo3.addBands(ndvi3)//.select('nd').rename('ndvi');
+//tiempo2= tiempo2.addBands(ndvi2).rename('ndvi');
+//tiempo3= tiempo3.addBands(ndvi3).rename('ndvi');
+var ImageCollection = ee.ImageCollection([tiempo4,tiempo5,tiempo6]);
+//rint(tiempo1);
+print(ImageCollection);
+
+//print(NDVImultitemporal);
+var imageVisParam= {'bands':['B4_median', 'B3_median', 'B2_median'],max:3000, min:0};
+var imageVisParam1= {'bands':['B4', 'B3', 'B2'],max:3000, min:0};
+var ndviParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+//COMPOSICIÓN FALSO COLOR CON NDVI
+//COLORES NDVI  ROJO: 0 A 0.33 AMARILLO: 0.33 A 0.66 VERDE:0.66 A 1  VERDE CLARO: 0.6 A 0.8 Y VERDE OSCURO: 0.6 A 1
+//Map.addLayer(NDVImultitemporal,{max: 0.7, min: 0.1, gamma: 1.0,}, 'NDVI multitemporal');
+
+print(tiempo1);
+Map.addLayer(tiempo1,imageVisParam1,'AÑO 2013',false);
+Map.addLayer(ndvi1,ndviParams,'NDVI 2013');
+
+print(tiempo2);
+Map.addLayer(tiempo2,imageVisParam,'AÑO 2015',false);
+Map.addLayer(ndvi2,ndviParams,'NDV2 2015',false);
+
+print(tiempo3);
+Map.addLayer(tiempo3,imageVisParam,'AÑO 2018',false);
+Map.addLayer(ndvi3,ndviParams,'NDV3 2018',false);
+
+Map.addLayer(roi2);
+print(ui.Chart.image.series(ImageCollection, geometry, ee.Reducer.mean(), 30));
+
+//GENERAR ANIMACIÓN
+
+var generarAnimacion= function(ImageCollection,geometry,framesPorSegundo)
+                      {
+                      var params= {
+                        crs: 'EPSG:3857',//Maps Mercator
+                        dimensions: '400',
+                        region: geometry,
+                        framesPerSecond: framesPorSegundo,
+                        };
+                        
+                        //create a vodep thumbnail and add it to the map
+                        var thumb = ui.Thumbnail(ImageCollection,params);
+                        return thumb;
+                    
+                       };
+print (generarAnimacion(ImageCollection,region,1));
