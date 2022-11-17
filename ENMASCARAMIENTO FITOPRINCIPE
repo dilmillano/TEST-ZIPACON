@@ -1,0 +1,16 @@
+var cloud_masks = require('users/fitoprincipe/geetools:cloud_masks');
+var options = ["cloud"]
+var  landsatTOAfunction = cloud_masks.landsatTOA (options);
+
+// The original Image
+var L8Image = ee.Image('LANDSAT/LC08/C01/T1_TOA/LC08_008057_20150104');
+
+// Apply mask
+var masked_image = landsatTOAfunction(L8Image);
+
+// Visualize
+var vis = {bands:['B5', 'B4', 'B3'], min:0, max:0.5}
+
+Map.addLayer(masked_image, vis, 'Landsat 8 SR masked');
+Map.addLayer(L8Image, vis, 'real');
+Map.centerObject(masked_image)
