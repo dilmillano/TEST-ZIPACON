@@ -1,0 +1,12 @@
+Map.addLayer(table,{},'area',true);
+var image = l8.filterBounds(geometry)
+              .filterDate('2018-01-01', '2019-01-01')
+              .filterMetadata('CLOUD_COVER' , 'less_than',15)
+              .first();
+var imageVisParam2 = {"opacity":1,"bands":["B4","B3","B2"],"min":0,"max":3000,"gamma":1};
+var ndvi = image.normalizedDifference(['B5', 'B4']);
+print(image);
+Map.addLayer(image,imageVisParam2, 'Landsat 8' );
+Map.addLayer(ndvi, vizNDVI , 'NDVI')
+
+
