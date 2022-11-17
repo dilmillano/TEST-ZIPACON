@@ -1,0 +1,16 @@
+var geometry= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var geometry2= ee.FeatureCollection('users/dilmillano/mygeodata');
+Map.centerObject(geometry, 15);
+var globalforest = ee.Image("UMD/hansen/global_forest_change_2019_v1_7");
+var vizLoss = {
+  //un cambio de un estado forestal a un estado no forestal
+  bands: ['loss'],
+  min: 0,
+  max: 1,
+  palette: [
+    "green","red"
+  ]
+};
+
+Map.addLayer(globalforest,vizLoss)
+Map.addLayer(geometry,{color: 'FFFFFF80'})
