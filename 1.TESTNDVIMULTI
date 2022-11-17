@@ -1,0 +1,35 @@
+Map.addLayer(table,{},'area',true);
+var Tiempo1 = l8.filterBounds(geometry)
+  .filterDate('2013-01-01', '2014-01-01') // Momento temporal 1
+  .filterMetadata ('CLOUDY_PIXEL_PERCENTAGE', 'Less_Than', 50)
+  .first();
+var Tiempo1b = Tiempo1.reduce(ee.Reducer.median());
+
+var Tiempo2 = l8.filterBounds(geometry)
+  .filterDate('2015-01-01', '2016-01-01') // Momento temporal 2
+  .filterMetadata ('CLOUDY_PIXEL_PERCENTAGE', 'Less_Than', 10)
+  .first();
+var Tiempo2b = Tiempo2.reduce(ee.Reducer.median());
+
+var Tiempo3 = l8.filterBounds(geometry)
+  .filterDate('2018-01-01', '2019-01-01') // Momento temporal 3
+  .filterMetadata ('CLOUDY_PIXEL_PERCENTAGE', 'Less_Than', 15)
+  .first();
+var Tiempo3b = Tiempo3.reduce(ee.Reducer.median());
+
+// Calculamos el i­ndice NDVI para cada uno de los tres momentos
+var NDVI1 = Tiempo1b.normalizedDifference (['B8_median', 'B4_median']);
+var NDVI2 = Tiempo2b.normalizedDifference (['B8_median', 'B4_median']);
+var NDVI3 = Tiempo3b.normalizedDifference (['B8_median', 'B4_median']);
+// Realizamos una composiciÃ³n RGB a falso color con cada uno de los tres Ã­ndices NDVI
+var NDVImultitemporal = NDVI1.addBands(NDVI2).addBands(NDVI3);
+Map.addLayer (NDVI3, {max: 1.0, min: 0, palette: ['CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901', '66A000', '529400', '3E8601',
+    '207401', '056201', '004C00', '023B01', '012E01', '011D01', '011301']},'NDVI t3');
+Map.addLayer (NDVI2, {max: 1.0, min: 0, palette: ['CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901', '66A000', '529400', '3E8601',
+    '207401', '056201', '004C00', '023B01', '012E01', '011D01', '011301']},'NDVI t2');
+Map.addLayer (NDVI1, {max: 1.0, min: 0, palette: ['CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901', '66A000', '529400', '3E8601',
+    '207401', '056201', '004C00', '023B01', '012E01', '011D01', '011301']},'NDVI t1');
+
+// Representamos y simbolizamos el NDVI multitemporal para identificar los cambios temporales
+Map.addLayer (NDVImultitemporal, {max: 0.7, min: 0.1, gamma: 1.0,}, 'NDVI multitemporal');
+Map.setCenter (33.844,46.679, 11); 
