@@ -1,0 +1,37 @@
+var roi= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var roi2= ee.FeatureCollection('users/dilmillano/mygeodata');
+roi=cuadro 
+// Import the Landsat 8 TOA image collection.
+
+var l8 = ee.ImageCollection("COPERNICUS/S2");
+var punto=ee.Geometry.Point([-74.42452, 4.71032]);
+// Map a function over the Landsat 8 TOA collection to add an NDVI band.
+var withNDBI = l8.map(function(image) {
+  var ndbi = image.normalizedDifference(['B11', 'B8']).rename('NDBI');
+  return image.addBands(ndbi);
+});
+
+// Create a chart.
+var chart = ui.Chart.image.series({
+  imageCollection: withNDBI.select('NDBI'),
+  region: punto,
+  reducer: ee.Reducer.mean(),
+  scale: 30
+}).setOptions({title: 'NDBI over time'});
+var imagen = l8.filterBounds(roi)
+              .filterDate('2016-08-01', '2020-08-30')
+              //.filterMetadata('CLOUD_COVER' , 'less_than',20)
+              .sort('CLOUD_COVER')
+              .first()
+              //.reduce(ee.Reducer.median())
+              .clip(roi);
+      
+// Display the chart in the console.
+print(chart);
+Map.addLayer(roi2,{color:'red'});
+Map.addLayer(roi);
+var imageVisParam= {'bands':['B12', 'B11', 'B4'],max:5000, min:0};
+Map.addLayer(imagen, imageVisParam,'urbano');
+var ndbiParams = {min: -1, max: 1, palette: ['green', 'white', 'blue']};
+var ndbi1 = imagen.normalizedDifference(['B11', 'B8']);
+Map.addLayer(ndbi1,ndbiParams,'ndbi'); 
