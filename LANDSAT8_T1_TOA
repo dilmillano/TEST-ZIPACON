@@ -1,0 +1,124 @@
+var geometry= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var geometry2= ee.FeatureCollection('users/dilmillano/mygeodata');
+Map.centerObject(geometry, 15);
+Map.addLayer(geometry);
+
+//FUNCIÓN DE PARAMETROS Y ENMASCARAMIENTO
+function get_image_real(init_date, finish_date) {
+var geometry= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var cloud_masks = require('users/fitoprincipe/geetools:cloud_masks');
+var options = ["cloud"]
+var  landsatTOAfunction = cloud_masks.landsatTOA(options);
+
+var L8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')
+         .filterDate(init_date, finish_date)
+         .filterBounds(geometry);
+         
+         
+return L8.map(function(image) {
+  var masked_image = landsatTOAfunction(image);
+  return masked_image;
+  
+});  
+}
+function get_image_ndvi(init_date, finish_date) {
+var geometry= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var cloud_masks = require('users/fitoprincipe/geetools:cloud_masks');
+var options = ["cloud"]
+var  landsatTOAfunction = cloud_masks.landsatTOA (options);
+
+var L8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')
+         .filterDate(init_date, finish_date)
+         .filterBounds(geometry);
+         
+         
+return L8.map(function(image) {
+  var masked_image = landsatTOAfunction(image);
+  var masked_ndvi = masked_image.normalizedDifference(['B5', 'B4']);
+  return masked_image.addBands(masked_ndvi);
+  
+});  
+}
+
+
+// VISUALIZACIÓN
+var ndviParams = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+var realParams = {'bands':['B4', 'B3', 'B2'],max:3000, min:0};
+
+
+//IMAGEN 1
+var imagen1 = get_image_real('2013-01-01', '2014-01-01');
+var imagenMedian1 = imagen1.median().clip(geometry);
+Map.addLayer(imagenMedian1, realParams, 'AÑO 2013',false);
+var ndvi1 = get_image_ndvi('2013-01-01', '2014-01-01');
+var ndviMedian1 = ndvi1.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian1, ndviParams, 'NDVI 2013',false);
+
+//var bare = ndviMedian1.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
+
+//IMAGEN 2
+var imagen2 = get_image_real('2014-01-01', '2015-01-01');
+var imagenMedian2 = imagen2.median().clip(geometry);
+Map.addLayer(imagenMedian2, realParams, 'AÑO 2014',false);
+var ndvi2 = get_image_ndvi('2014-01-01', '2015-01-01');
+var ndviMedian2 = ndvi2.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian2, ndviParams, 'NDVI 2014',false);
+
+//var bare2 = ndviMedian2.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare2.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
+
+//IMAGEN 3
+var imagen3 = get_image_real('2015-01-01', '2016-01-01');
+var imagenMedian3 = imagen3.median().clip(geometry);
+Map.addLayer(imagenMedian3, realParams, 'AÑO 2015',false);
+var ndvi3 = get_image_ndvi('2015-01-01', '2016-01-01');
+var ndviMedian3 = ndvi3.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian3, ndviParams, 'NDVI 2015',false);
+
+//var bare3 = ndviMedian3.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare3.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
+
+//IMAGEN 4
+var imagen4 = get_image_real('2016-01-01', '2017-01-01');
+var imagenMedian4 = imagen4.median().clip(geometry);
+Map.addLayer(imagenMedian4, realParams, 'AÑO 2016',false);
+var ndvi4 = get_image_ndvi('2016-01-01', '2017-01-01');
+var ndviMedian4 = ndvi4.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian4, ndviParams, 'NDVI 2016',false);
+
+//var bare4 = ndviMedian4.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare4.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
+
+//IMAGEN 5
+var imagen5 = get_image_real('2017-01-01', '2018-01-01');
+var imagenMedian5 = imagen5.median().clip(geometry);
+Map.addLayer(imagenMedian5, realParams, 'AÑO 2017',false);
+var ndvi5 = get_image_ndvi('2017-01-01', '2018-01-01');
+var ndviMedian5 = ndvi5.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian5, ndviParams, 'NDVI 2017',false);
+
+//var bare5 = ndviMedian5.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare5.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
+
+//IMAGEN 6
+var imagen6 = get_image_real('2018-01-01', '2019-01-01');
+var imagenMedian6 = imagen6.median().clip(geometry);
+Map.addLayer(imagenMedian6, realParams, 'AÑO 2018',false);
+var ndvi6 = get_image_ndvi('2018-01-01', '2019-01-01');
+var ndviMedian6 = ndvi6.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian6, ndviParams, 'NDVI 2018',false);
+
+//var bare5 = ndviMedian4.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare5.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
+
+//IMAGEN 7
+var imagen7 = get_image_real('2019-01-01', '2020-01-01');
+var imagenMedian7 = imagen7.median().clip(geometry);
+Map.addLayer(imagenMedian7, realParams, 'AÑO 2019',false);
+var ndvi7 = get_image_ndvi('2019-01-01', '2020-01-01');
+var ndviMedian7 = ndvi7.select('nd').median().clip(geometry);
+Map.addLayer(ndviMedian7, ndviParams, 'NDVI 2019',false);
+
+//var bare7 = ndviMedian7.lt(0.5);// visualización de sueño desnudo menor a 0.5
+//Map.addLayer(bare7.updateMask(bare), {palette:['red']}, 'bare'); //de color rojo
