@@ -1,0 +1,38 @@
+//IMPORTAR AREA
+Map.addLayer(table,{},'area',true);
+Map.centerObject(geometry);
+//DECLARAR 3 MOMENTOS TEMPORALES
+var tiempo1 = l8.filterBounds(geometry)
+              .filterDate('2013-01-01', '2014-01-01')
+              .filterMetadata('CLOUD_COVER' , 'less_than',50)
+              .first().clip(geometry); 
+
+var tiempo2 = l8.filterBounds(geometry)
+              .filterDate('2015-01-01', '2016-01-01')
+              .filterMetadata('CLOUD_COVER' , 'less_than',10)
+              .first();
+var tiempo3 = l8.filterBounds(geometry)
+              .filterDate('2018-01-01', '2019-01-01')
+              .filterMetadata('CLOUD_COVER' , 'less_than',15)
+              .first();
+//CALCULO NDVI
+var ndvi1 = tiempo1.normalizedDifference(['B5', 'B4']);
+var ndvi2 = tiempo2.normalizedDifference(['B5', 'B4']);
+var ndvi3 = tiempo3.normalizedDifference(['B5', 'B4']);   
+var NDVImultitemporal = ndvi1.addBands(ndvi2).addBands(ndvi3);
+
+//COMPOSICIÓN FALSO COLOR CON NDVI
+
+Map.addLayer(NDVImultitemporal,{max: 0.7, min: 0.1, gamma: 1.0,}, 'NDVI multitemporal');
+
+print(tiempo1);
+Map.addLayer(tiempo1,imageVisParam,'AÑO 2013');
+Map.addLayer(ndvi1,vizNDVI,'NDVI 2013');
+
+print(tiempo2);
+Map.addLayer(tiempo2,imageVisParam,'AÑO 2015');
+Map.addLayer(ndvi2,vizNDVI,'NDV2 2015');
+
+print(tiempo3);
+Map.addLayer(tiempo3,imageVisParam,'AÑO 2018');
+Map.addLayer(ndvi3,vizNDVI,'NDV3 2018');
