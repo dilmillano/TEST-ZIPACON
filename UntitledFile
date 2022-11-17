@@ -1,0 +1,48 @@
+//ENTRADA DEL ÁREA DE INTERES
+var geometry= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var geometry2= ee.FeatureCollection('users/dilmillano/mygeodata');
+Map.centerObject(geometry);
+Map.addLayer(geometry);
+
+//IMPORTAR IMAGENES SATELITALES
+var SENTINEL_2 = 'COPERNICUS/S2'
+var LANDSAT_8 = 'LANDSAT/LC08/C01/T1_SR'
+
+function get_time(parameters){
+  var CLOUDS = 'CLOUD_COVER'
+  if(parameters.satelite == 'COPERNICUS/S2'){
+    CLOUDS = 'CLOUD_COVERAGE_ASSESSMENT'
+  }
+  var Satelite = ee.ImageCollection(parameters.satelite); 
+  return Satelite.filterBounds(parameters.geometry)
+              .filterDate(parameters.init_date, parameters.finish_date)
+              .filterMetadata(CLOUDS , 'less_than',50)
+              .sort(CLOUDS)
+              .first()
+              //.reduce(ee.Reducer.median())
+              .clip(parameters.geometry);
+}
+
+
+var get_time_parameters_1 = {
+  satelite: SENTINEL_2,
+  init_date: '2015-01-01',
+  finish_date: '2016-01-01',
+  geometry: ee.FeatureCollection('users/dilmillano/AREADELIMITADA')
+}
+var get_time_parameters_2 = {
+  satelite: LANDSAT_8,
+  init_date: '2015-01-01',
+  finish_date: '2016-01-01',
+  geometry: ee.FeatureCollection('users/dilmillano/AREADELIMITADA'),
+  image_real_parameters: {'bands':['B4', 'B3', 'B2'],max:3000, min:0},
+  image_ndvi_parameters:{min: -1, max: 1, palette: ['blue', 'white', 'green']},
+  name: 'IMAGEN 1'
+}
+var tiempo_1 = get_time(get_time_parameters_1)
+
+print(tiempo_1);
+Map.addLayer(tiempo_1,
+get_time_parameters_2.image_real_parameters,
+get_time_parameters_2.name);
+
