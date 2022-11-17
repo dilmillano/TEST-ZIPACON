@@ -1,0 +1,66 @@
+//ENTRADA DEL ÁREA DE INTERES
+var zipacon= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+var lacabaña= ee.FeatureCollection('users/dilmillano/mygeodata');
+Map.centerObject(zipacon);
+
+//IMPORTAR IMAGENES SATELITALES
+var LANDSAT_8 = 'LANDSAT/LC08/C01/T1_SR';
+
+//PARAMETROS
+
+function get_image(parameters){
+  var Satelite = ee.ImageCollection(parameters.satelite); 
+  return Satelite.filterBounds(parameters.zipacon)
+              .filterDate(parameters.date)
+              .first()
+              .clip(parameters.zipacon);
+}
+//FUNCIÓN ENMASCARAMIENTO
+
+var withMask = imagen1.map(function(image) {
+var cloud_masks = require('users/fitoprincipe/geetools:cloud_masks');
+var options = ["cloud","shadow"];
+var landsatSRfunction = cloud_masks.landsatSR(options);
+  var masked_image = landsatSRfunction(image);
+  var masked_ndvi = masked_image.normalizedDifference(['B5', 'B4']);
+  return masked_image.addBands(masked_ndvi);
+  
+});
+
+//PARAMETROS
+var get_image_parameters = {
+  satelite: LANDSAT_8,
+  init_date: '2013-01-01',
+  finish_date: '2014-01-01',
+  vizreal: {'bands':['B4', 'B3', 'B2'],max:3000, min:0},
+  vizndvi:{min: -1, max: 1, palette: ['red', 'orange', 'black', '#32ca00', 'green']},
+  name: 'IMAGEN 1',
+  image_collection: ee.ImageCollection(LANDSAT_8),
+}
+
+//IMAGEN 1
+var imagen1 = get_image(get_image_parameters)
+print(imagen1, 'imagen1');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// VISUALIZE
+var visreal = {bands:['B5', 'B4', 'B3'], min:0, max:0.5};
+var ndviMedian = withMask.select('nd').median().clip(zipacon);
+var visndvi = {min: -1, max: 1, palette: ['blue', 'white', 'green']};
+
+Map.addLayer(ndviMedian, visndvi, 'Landsat 8 TR masked');
+
+
+
