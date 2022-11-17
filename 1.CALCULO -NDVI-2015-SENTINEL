@@ -1,0 +1,60 @@
+//Importar el area de estudio
+var Ocaso= ee.FeatureCollection('users/dilmillano/SECTOR_OCASO');
+
+//Eliminar nubes y sombras 
+var cloud_masks = require('users/fitoprincipe/geetools:cloud_masks');
+var options = ["cloud","shadow"]
+var sentinel2function = cloud_masks.sentinel2();
+//Cálculo de ndvi
+function addndvi_L08(img) {
+  img = ee.Image(img) ;
+  var ndvi = img.normalizedDifference(['B8', 'B4']).rename(['ndvi']);
+  var img_ndvi = img.addBands(ndvi);
+  return img_ndvi;
+}
+
+//Año actual 
+var OcasoSR_L08 = ee.ImageCollection("COPERNICUS/S2")
+                     .filterBounds(Ocaso)
+                     .filterDate("2015-01-01","2015-12-31")
+                     //.filterMetadata('CLOUD_COVER','less_than',20)
+                     .map(sentinel2function)
+                     .map(addndvi_L08)
+                     .median()
+                     
+                     //.sort('CLOUD_COVER');
+                     ;
+  
+                     
+Map.addLayer(OcasoSR_L08.clip(Ocaso) ,{ min: 0,
+  max: 5000,
+  gamma: 1.4,bands:['B4','B3','B2']},'Año 2-2020');
+  
+OcasoSR_L08= OcasoSR_L08.select('ndvi');
+
+var sueloDesnudo = OcasoSR_L08.lte(0.2);
+var urbano = OcasoSR_L08.lte(0.4);
+var vegetacion = OcasoSR_L08.lte(0.6);
+var vegetaciónVigorosa = OcasoSR_L08.gt(0.6);
+
+//Mascaras
+var mascara_sueloDesnudo= sueloDesnudo
+          .updateMask(sueloDesnudo);
+var mascara_urbano=urbano
+         .updateMask(urbano);    
+var mascara_vegetacion=vegetacion
+         .updateMask(vegetacion);  
+var mascara_vegetaciónVigorosa=vegetaciónVigorosa
+         .updateMask(vegetaciónVigorosa);  
+         
+         
+var mosaic = ee.ImageCollection
+([mascara_sueloDesnudo.visualize({palette: ['red']}),
+ mascara_urbano.visualize({palette: ['black']}),
+mascara_vegetacion.visualize({palette: ['yellow']}),
+mascara_vegetaciónVigorosa.visualize({palette: ['green']}),
+]).mosaic();
+Map.addLayer(mosaic.clip(Ocaso),{},'Mosaico');
+
+  Map.centerObject( Ocaso,10);
+  
