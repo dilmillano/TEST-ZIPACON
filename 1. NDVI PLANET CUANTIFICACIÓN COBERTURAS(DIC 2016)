@@ -1,0 +1,61 @@
+var Ocaso= ee.FeatureCollection('users/dilmillano/SECTOR_OCASO');
+var ocaso= ee.Image('users/dilmillano/PLANET-DICIEMBRE2016');
+
+var ndvi= ocaso.normalizedDifference(["b4", "b3"]);
+
+Map.addLayer(ndvi.clip(Ocaso),{palette:["red", "black","yellow", "green"],min:0, max:0.8 }, 'NDVI');
+
+Map.addLayer(ocaso.clip(Ocaso),{bands:["b3","b2","b1"], max:5000}, 'IMAGEN NATURAL',false);
+Map.centerObject(Ocaso,15);
+//Map.addLayer(Ocaso1,{},'OCASO',false);
+
+//RANGOS DE CLASIFICACIÓN
+var sueloDesnudo = ndvi.lte(0.2);
+var urbano = ndvi.gt(0.2).and(ndvi.lte(0.4));
+var vegetacion = ndvi.gt(0.4).and(ndvi.lte(0.6));
+var vegetaciónVigorosa = ndvi.gt(0.6);
+
+//Mascaras
+var mascara_sueloDesnudo= sueloDesnudo
+          .updateMask(sueloDesnudo);
+var mascara_urbano=urbano
+         .updateMask(urbano);    
+var mascara_vegetacion=vegetacion
+         .updateMask(vegetacion);  
+var mascara_vegetaciónVigorosa=vegetaciónVigorosa
+         .updateMask(vegetaciónVigorosa);  
+         
+         
+var mosaic = ee.ImageCollection
+([mascara_sueloDesnudo.visualize({palette: ['red']}),
+ mascara_urbano.visualize({palette: ['yellow']}),
+mascara_vegetacion.visualize({palette: ['#a9cc71']}),
+mascara_vegetaciónVigorosa.visualize({palette: ['green']}),
+]).mosaic();
+Map.addLayer(mosaic.clip(Ocaso),{},'Mosaico');
+
+  Map.centerObject( Ocaso,15);
+
+//Calculo de área
+var area = ee.Image.pixelArea().divide(10000);
+
+//lake_mask = lake_mask.updateMask(lake_mask)
+
+mascara_sueloDesnudo = mascara_sueloDesnudo.multiply(area).select([0],['Suelo Desnudo']);
+mascara_urbano = mascara_urbano.multiply(area).select([0],['Urbano']);
+mascara_vegetacion = mascara_vegetacion.multiply(area).select([0],['Vegetación']);
+mascara_vegetaciónVigorosa = mascara_vegetaciónVigorosa.multiply(area).select([0],['Vegetación vigorosa']);
+
+
+
+var area_image = mascara_sueloDesnudo
+                .addBands(mascara_urbano)
+                .addBands(mascara_vegetacion)
+                .addBands(mascara_vegetaciónVigorosa);
+var areas = area_image.reduceRegion({
+  reducer:ee.Reducer.sum(),
+  geometry: Ocaso,
+  scale: 30,
+  maxPixels:1e13
+})
+print(areas)
