@@ -1,0 +1,125 @@
+//ENTRADA DEL ÁREA DE INTERES
+//var geometry= ee.FeatureCollection('users/dilmillano/AREADELIMITADA');
+//var geometry2= ee.FeatureCollection('users/dilmillano/mygeodata');
+Map.centerObject(geometry);
+Map.addLayer(geometry);
+
+//IMPORTAR IMAGENES SATELITALES
+var SENTINEL_2 = 'COPERNICUS/S2'
+var LANDSAT_8 = 'LANDSAT/LC08/C01/T1_SR'
+
+//FUNCIÓN DE PARÁMETROS
+function get_image(parameters){
+  var CLOUDS = 'CLOUD_COVER'
+  if(parameters.satelite == 'COPERNICUS/S2'){
+    CLOUDS = 'CLOUD_COVERAGE_ASSESSMENT'
+  }
+  var Satelite = ee.ImageCollection(parameters.satelite); 
+  return Satelite.filterBounds(parameters.geometry)
+              .filterDate(parameters.init_date, parameters.finish_date)
+              .filterMetadata(CLOUDS , 'less_than',20)
+              .sort(CLOUDS)
+              .first()
+              //.reduce(ee.Reducer.median())
+              .clip(parameters.geometry);
+}
+
+
+var get_image_parameters_sentinel = {
+  satelite: SENTINEL_2,
+  init_date: '2015-01-01', 
+  finish_date: '2016-01-01',
+  geometry: ee.FeatureCollection(geometry),
+  image_real_parameters: {'bands':['B4', 'B3', 'B2'],max:3000, min:0},
+  image_ndbi_parameters:{min: -1, max: 1, palette: ['green', 'black', 'blue']},
+  name: 'IMAGEN 1'
+}
+
+var get_image_parameters_landsat = {
+  satelite: LANDSAT_8,
+  init_date: '2013-01-01',
+  finish_date: '2014-01-01',
+  geometry: ee.FeatureCollection('users/dilmillano/AREADELIMITADA'),
+  image_real_parameters: {'bands':['B4', 'B3', 'B2'],max:3000, min:0},
+  image_ndvi_parameters:{min: -1, max: 1, palette: ['blue', 'white', 'green']},
+  name: 'IMAGEN 1'
+}
+//CÁLCULO DE INDICE NDBI
+
+function index_ndvi(parameters){
+var BANDAS = 'B5';'B4'
+  if(parameters.satelite == 'COPERNICUS/S2'){
+    BANDAS = 'B11';'B8'
+  }
+
+}
+
+//IMPRIMIR IMAGENES
+//IMAGEN 1
+var image_1 = get_image(get_image_parameters_sentinel)
+print(image_1,'imagen1');
+Map.addLayer(image_1,
+get_image_parameters_sentinel.image_real_parameters,get_image_parameters_sentinel.name);
+var ndbi1 = image_1.normalizedDifference(['B5', 'B4']);
+Map.addLayer(ndbi1,get_image_parameters_sentinel.image_ndbi_parameters,'NDBI 2015');
+
+//IMAGEN 2
+get_image_parameters_sentinel.init_date = '2016-01-01'
+get_image_parameters_sentinel.finish_date = '2017-01-01'
+get_image_parameters_sentinel.name= 'IMAGEN 2' 
+
+var image_2 = get_image(get_image_parameters_sentinel)
+print(image_2,'imagen2');
+Map.addLayer(image_2,
+get_image_parameters_sentinel.image_real_parameters, get_image_parameters_sentinel.name);
+var ndbi2 = image_2.normalizedDifference(['B5', 'B4']);
+Map.addLayer(ndbi2,get_image_parameters_sentinel.image_ndbi_parameters,'NDBI 2016');
+
+
+//IMAGEN 3
+get_image_parameters_sentinel.init_date = '2017-02-01'
+get_image_parameters_sentinel.finish_date = '2018-01-01'
+get_image_parameters_sentinel.name= 'IMAGEN 3' 
+
+var image_3 = get_image(get_image_parameters_sentinel)
+print(image_3,'imagen3');
+Map.addLayer(image_3,
+get_image_parameters_sentinel.image_real_parameters,get_image_parameters_sentinel.name);
+var ndbi3 = image_3.normalizedDifference(['B5', 'B4']);
+Map.addLayer(ndbi3,get_image_parameters_sentinel.image_ndbi_parameters,'NDBI 2017');
+
+//IMAGEN 4
+get_image_parameters_sentinel.init_date = '2018-02-01'
+get_image_parameters_sentinel.finish_date = '2019-01-01'
+get_image_parameters_sentinel.name= 'IMAGEN 4' 
+
+var image_4 = get_image(get_image_parameters_sentinel)
+print(image_4,'imagen4');
+Map.addLayer(image_4,
+get_image_parameters_sentinel.image_real_parameters,get_image_parameters_sentinel.name);
+var ndbi4 = image_4.normalizedDifference(['B5', 'B4']);
+Map.addLayer(ndbi4,get_image_parameters_sentinel.image_ndbi_parameters,'NDBI 2018');
+
+//IMAGEN 5
+get_image_parameters_sentinel.init_date = '2019-02-01'
+get_image_parameters_sentinel.finish_date = '2020-01-01'
+get_image_parameters_sentinel.name= 'IMAGEN 5' 
+
+var image_5 = get_image(get_image_parameters_sentinel)
+print(image_5,'imagen5');
+Map.addLayer(image_5,
+get_image_parameters_sentinel.image_real_parameters,get_image_parameters_sentinel.name);
+var ndbi5 = image_5.normalizedDifference(['B5', 'B4']);
+Map.addLayer(ndbi5,get_image_parameters_sentinel.image_ndbi_parameters,'NDBI 2019');
+
+//IMAGEN 6
+get_image_parameters_sentinel.init_date = '2020-02-01'
+get_image_parameters_sentinel.finish_date = '2021-01-01'
+get_image_parameters_sentinel.name= 'IMAGEN 7' 
+
+var image_6 = get_image(get_image_parameters_sentinel)
+print(image_6,'imagen6');
+Map.addLayer(image_6,
+get_image_parameters_sentinel.image_real_parameters,get_image_parameters_sentinel.name);
+var ndbi6 = image_6.normalizedDifference(['B5', 'B4']);
+Map.addLayer(ndbi5,get_image_parameters_sentinel.image_ndbi_parameters,'NDBI 2020');
