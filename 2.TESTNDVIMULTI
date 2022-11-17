@@ -1,0 +1,42 @@
+//Declaración del área de estudio 
+Map.addLayer(table,{},'area',true);
+
+// Declaramos tres momentos temporales para disponer de los datos necesarios
+var Tiempo1 = ee.ImageCollection ('COPERNICUS/S2')
+  .filterDate ('2013-01-01', '2014-01-01') // Momento temporal 1
+  .filterBounds (geometry)
+  .filterMetadata ('CLOUDY_PIXEL_PERCENTAGE', 'Less_Than', 70);
+
+var Tiempo1b = Tiempo1.reduce(ee.Reducer.median());
+
+var Tiempo2 = ee.ImageCollection ('COPERNICUS/S2')
+  .filterDate ('2015-01-01', '2016-01-01') // Momento temporal 2
+  .filterBounds (geometry)
+  .filterMetadata ('CLOUDY_PIXEL_PERCENTAGE', 'Less_Than',70);
+var Tiempo2b = Tiempo2.reduce(ee.Reducer.median());
+
+var Tiempo3 = ee.ImageCollection ('COPERNICUS/S2')
+  .filterDate ('2018-01-01', '2019-01-01')  // Momento temporal 3
+  .filterBounds (geometry)
+  .filterMetadata ('CLOUDY_PIXEL_PERCENTAGE', 'Less_Than', 70);
+var Tiempo3b = Tiempo3.reduce(ee.Reducer.median());
+
+// Calculamos el Ã­ndice NDVI para cada uno de los tres momentos
+var NDVI1 = Tiempo1b.normalizedDifference (['B8_median', 'B4_median']);
+var NDVI2 = Tiempo2b.normalizedDifference (['B8_median', 'B4_median']);
+var NDVI3 = Tiempo3b.normalizedDifference (['B8_median', 'B4_median']);
+
+// Realizamos una composiciÃ³n RGB a falso color con cada uno de los tres Ã­ndices NDVI
+var NDVImultitemporal = NDVI1.addBands(NDVI2).addBands(NDVI3);
+
+// Representamos y simbolizamos cada uno de los tres Ã­ndices NDVI
+Map.addLayer (NDVI3, {max: 1.0, min: 0, palette: ['CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901', '66A000', '529400', '3E8601',
+    '207401', '056201', '004C00', '023B01', '012E01', '011D01', '011301']},'NDVI t3');
+Map.addLayer (NDVI2, {max: 1.0, min: 0, palette: ['CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901', '66A000', '529400', '3E8601',
+    '207401', '056201', '004C00', '023B01', '012E01', '011D01', '011301']},'NDVI t2');
+Map.addLayer (NDVI1, {max: 1.0, min: 0, palette: ['CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901', '66A000', '529400', '3E8601',
+    '207401', '056201', '004C00', '023B01', '012E01', '011D01', '011301']},'NDVI t1');
+
+// Representamos y simbolizamos el NDVI multitemporal para identificar los cambios temporales
+Map.addLayer (NDVImultitemporal, {max: 0.7, min: 0.1, gamma: 1.0,}, 'NDVI multitemporal');
+
